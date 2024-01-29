@@ -1,32 +1,67 @@
-package org.example.client;
+package org.example.service;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import com.google.gson.Gson;
+import lombok.SneakyThrows;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.example.model.Pet;
+import org.example.model.Status;
+import org.example.model.User;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
 
 public class PetStoreClient {
-    private final String BASE_URL = "https://petstore.swagger.io/v2";
+    private final String baseUrl = "https://petstore.swagger.io/v2";
+    private final HttpClient httpClient = HttpClients.createDefault();
 
-    public Response createUser() {
-        // Implement logic to create a user and return the response
-        // You may need to provide the necessary payload in the request
-        // Example:
-        Response response = RestAssured.given().contentType(ContentType.JSON).body(userPayload).post(BASE_URL + "/user");
-        return response;
+    Gson gson = new Gson();
+
+    @SneakyThrows
+    public void createUser(User user) {
+        String request = gson.toJson(user);
+        HttpPost createUserRequest = new HttpPost(baseUrl + "/user");
+        createUserRequest.setEntity(new StringEntity(request));
+        createUserRequest.setHeader("Content-type", "application/json");
+        createUserRequest.setHeader("Accept", "application/json");
+        httpClient.execute(createUserRequest).getStatusLine().getStatusCode();
     }
 
-    public Response getUserData(String username) {
-        // Implement logic to retrieve user data by username and return the response
-        // Example:
-        // Response response = RestAssured.get(BASE_URL + "/user/" + username);
-        // return response;
+    @SneakyThrows
+    public User getUser(String username) {
+        HttpGet getUserRequest = new HttpGet(baseUrl + "/user/" + username);
+        getUserRequest.setHeader("Content-type", "application/json");
+        getUserRequest.setHeader("Accept", "application/json");
+        HttpResponse response = httpClient.execute(getUserRequest);
+        Gson gson = new Gson();
+        return gson.fromJson(getResponseContent(response), User.class);
     }
 
-    public Response getPetsByStatus(String status) {
-        // Implement logic to retrieve pets by status and return the response
-        // Example:
-        // Response response = RestAssured.get(BASE_URL + "/pet/findByStatus?status=" + status);
-        // return response;
+    @SneakyThrows
+    public List<Pet> findPetsByStatus(Status status) {
+        HttpGet findPetsRequest = new HttpGet(baseUrl + "/pet/findByStatus?status=" + status.getStatus());
+        findPetsRequest.setHeader("Content-type", "application/json");
+        HttpResponse response = httpClient.execute(findPetsRequest);
+
+        Gson gson = new Gson();
+        return Arrays.asList(gson.fromJson(getResponseContent(response), Pet[].class));
     }
 
+    @SneakyThrows
+    String getResponseContent(HttpResponse response) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        StringBuilder content = new StringBuilder();
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            content.append(line);
+        }
+        return content.toString();
+    }
 }

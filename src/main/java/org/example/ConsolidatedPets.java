@@ -1,4 +1,4 @@
-package org.example.model;
+package org.example;
 
 import lombok.Getter;
 import org.javatuples.Pair;
@@ -21,8 +21,4 @@ public class ConsolidatedPets {
 
     private final Map<String, Integer> consolidatedPets;
 
-    @Override
-    public String toString() {
-        return String.format(consolidatedPets.toString());
-    }
 }

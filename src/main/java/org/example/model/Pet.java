@@ -1,26 +1,32 @@
-package org.example.service;
+package org.example.model;
+
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public class Pet {
     private long id;
     private Category category;
     private String name;
-    private List<PhotoUrl> photoUrls;
+    private List<String> photoUrls;
     private List<Tag> tags;
-    private Status status;
+    private String status;
 
-    private class Category {
+    @Getter
+    private static class Category {
         private long id;
         private String name;
     }
 
-    private class PhotoUrl {
-        private String url;
-    }
-
-    private class Tag {
+    @Getter
+    private static class Tag {
         private long id;
         private String name;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("\n{id=%d, name=%s}", id, name);
     }
 }
